@@ -115,7 +115,7 @@ public class EmbeddedServerInvoker {
         Properties props = System.getProperties();
         try {
             Thread.currentThread().setContextClassLoader(newCl);
-            final Class<?> cliScriptRunner = newCl.loadClass("org.jboss.galleon.plugin.wildfly.server.CliScriptRunner");
+            final Class<?> cliScriptRunner = newCl.loadClass("org.wildfly.galleon.plugin.config.generator.server.CliScriptRunner");
             final Method execute = cliScriptRunner.getMethod("runCliScript", Path.class, Path.class, MessageWriter.class);
             execute.invoke(null, installationDir, script, messageWriter);
         } catch (ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoClassDefFoundError ex) {

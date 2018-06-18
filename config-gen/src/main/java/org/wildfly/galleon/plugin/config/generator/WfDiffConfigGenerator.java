@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.wildfly.galleon.plugin;
+package org.wildfly.galleon.plugin.config.generator;
 
 import static org.jboss.galleon.Constants.GLN_UNDEFINED;
 import static org.wildfly.galleon.plugin.WfConstants.ADDR_PARAMS;

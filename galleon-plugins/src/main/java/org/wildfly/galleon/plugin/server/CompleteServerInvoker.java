@@ -49,7 +49,7 @@ public class CompleteServerInvoker {
         Properties props = System.getProperties();
         try {
             Thread.currentThread().setContextClassLoader(newCl);
-            final Class<?> serverClass = newCl.loadClass("org.jboss.galleon.plugin.wildfly.server.CompleteServer");
+            final Class<?> serverClass = newCl.loadClass("org.wildfly.galleon.plugin.config.generator.server.CompleteServer");
             server = serverClass.getConstructor(Path.class, String.class).newInstance(installationDir, serverConfig);
             final Method startServerMethod = serverClass.getMethod("startServer");
             startServerMethod.invoke(server);

@@ -23,7 +23,10 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
@@ -39,6 +42,7 @@ import javax.xml.stream.XMLStreamException;
 import org.jboss.galleon.MessageWriter;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ArtifactCoords.Gav;
+import org.jboss.galleon.Errors;
 import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.diff.FileSystemDiff;
@@ -57,6 +61,16 @@ import org.wildfly.galleon.plugin.server.ClassLoaderHelper;
  */
 public class WfDiffPlugin extends ProvisioningPluginWithOptions implements DiffPlugin {
 
+    private static final String CONFIG_GEN_PATH = "wildfly/wildfly-config-gen.jar";
+    private static final String CONFIG_GEN_CLASS = "org.wildfly.galleon.plugin.config.generator.WfDiffConfigGenerator";
+
+    static final PluginOption HOST = PluginOption.builder("host").setDefaultValue("127.0.0.1").build();
+    static final PluginOption PORT = PluginOption.builder("port").setDefaultValue("9990").build();
+    static final PluginOption PROTOCOL = PluginOption.builder("protocol").setDefaultValue("remote+http").build();
+    static final PluginOption USERNAME = PluginOption.builder("username").setRequired().build();
+    static final PluginOption PASSWORD = PluginOption.builder("password").setRequired().build();
+    static final PluginOption SERVER_CONFIG = PluginOption.builder("server-config").setDefaultValue("standalone.xml").build();
+
     private static final PathFilter FILTER_FP = PathFilter.Builder.instance()
             .addDirectories("*" + File.separatorChar + "tmp", "*" + File.separatorChar + "log", "*_xml_history", "model_diff")
             .addFiles("standalone.xml", "process-uuid", "logging.properties")
@@ -70,27 +84,45 @@ public class WfDiffPlugin extends ProvisioningPluginWithOptions implements DiffP
     @Override
     protected List<PluginOption> initPluginOptions() {
         return Arrays.asList(
-                WfDiffConfigGenerator.HOST,
-                WfDiffConfigGenerator.PORT,
-                WfDiffConfigGenerator.PROTOCOL,
-                WfDiffConfigGenerator.USERNAME,
-                WfDiffConfigGenerator.PASSWORD,
-                WfDiffConfigGenerator.SERVER_CONFIG);
+                HOST,
+                PORT,
+                PROTOCOL,
+                USERNAME,
+                PASSWORD,
+                SERVER_CONFIG);
     }
 
     @Override
     public void computeDiff(ProvisioningRuntime runtime, Path customizedInstallation, Path target) throws ProvisioningException {
         final MessageWriter messageWriter = runtime.getMessageWriter();
-        messageWriter.verbose("WildFly diff plug-in");
+        messageWriter.verbose("WildFly Galleon diff plugin");
         FileSystemDiff diff = new FileSystemDiff(messageWriter, runtime.getInstallDir(), customizedInstallation);
         final ClassLoader originalCl = Thread.currentThread().getContextClassLoader();
-        URLClassLoader newCl = ClassLoaderHelper.prepareProvisioningClassLoader(runtime.getInstallDir(), originalCl);
+        final Path configGenJar = runtime.getResource(CONFIG_GEN_PATH);
+        if(!Files.exists(configGenJar)) {
+            throw new ProvisioningException(Errors.pathDoesNotExist(configGenJar));
+        }
+        URLClassLoader newCl;
+        try {
+
+            newCl = ClassLoaderHelper.prepareProvisioningClassLoader(runtime.getInstallDir(), originalCl,
+                    configGenJar.toUri().toURL());
+        } catch (MalformedURLException e) {
+            throw new ProvisioningException("Failed to init classpath for " + runtime.getStagedDir(), e);
+        }
+        if(runtime.getMessageWriter().isVerboseEnabled()) {
+            messageWriter.verbose("Diff generator classpath:");
+            int i = 0;
+            for(URL cp : newCl.getURLs()) {
+                messageWriter.verbose(i+1 + ". %s", cp);
+            }
+        }
         Properties props = System.getProperties();
         ConfigModel config;
         Thread.currentThread().setContextClassLoader(newCl);
         Map<Gav, ConfigId> includedConfigs = new HashMap<>();
         try {
-            final Class<?> wfDiffGenerator = newCl.loadClass("org.jboss.galleon.plugin.wildfly.WfDiffConfigGenerator");
+            final Class<?> wfDiffGenerator = newCl.loadClass(CONFIG_GEN_CLASS);
             final Method exportDiff = wfDiffGenerator.getMethod("exportDiff", ProvisioningRuntime.class, Map.class, Path.class, Path.class);
             config = (ConfigModel) exportDiff.invoke(null, runtime, includedConfigs, customizedInstallation, target);
         } catch (ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoClassDefFoundError ex) {

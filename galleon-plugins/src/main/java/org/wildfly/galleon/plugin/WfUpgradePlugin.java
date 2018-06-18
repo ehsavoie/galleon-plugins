@@ -20,11 +20,14 @@ package org.wildfly.galleon.plugin;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.diff.FileSystemMerge;
 import org.jboss.galleon.diff.Strategy;
+import org.jboss.galleon.plugin.PluginOption;
+import org.jboss.galleon.plugin.ProvisioningPluginWithOptions;
 import org.jboss.galleon.plugin.UpgradePlugin;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
 import org.wildfly.galleon.plugin.server.EmbeddedServerInvoker;
@@ -33,7 +36,7 @@ import org.wildfly.galleon.plugin.server.EmbeddedServerInvoker;
  *
  * @author Emmanuel Hugonnet (c) 2017 Red Hat, inc.
  */
-public class WfUpgradePlugin implements UpgradePlugin {
+public class WfUpgradePlugin extends ProvisioningPluginWithOptions implements UpgradePlugin {
 
     @Override
     public void upgrade(ProvisioningRuntime runtime, Path customizedInstallation) throws ProvisioningException {
@@ -49,5 +52,16 @@ public class WfUpgradePlugin implements UpgradePlugin {
             runtime.getMessageWriter().error(ex, "Error upgrading");
             throw new ProvisioningException(ex.getMessage(), ex);
         }
+    }
+
+    @Override
+    protected List<PluginOption> initPluginOptions() {
+        return Arrays.asList(
+                WfDiffPlugin.HOST,
+                WfDiffPlugin.PORT,
+                WfDiffPlugin.PROTOCOL,
+                WfDiffPlugin.USERNAME,
+                WfDiffPlugin.PASSWORD,
+                WfDiffPlugin.SERVER_CONFIG);
     }
 }
