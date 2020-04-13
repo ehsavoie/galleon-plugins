@@ -342,6 +342,9 @@ public class FeatureSpecGeneratorInvoker {
             artifact = artifacts.get(artifactCoords);
         }
         if (artifact == null) {
+            artifact = artifacts.get(coords.getArtifactKey());
+        }
+        if (artifact == null) {
             final ArtifactItem item = new ArtifactItem();
             item.setGroupId(coords.getGroupId());
             item.setArtifactId(coords.getArtifactId());
@@ -683,8 +686,18 @@ public class FeatureSpecGeneratorInvoker {
         final StringBuilder buf = new StringBuilder(artifact.getGroupId()).append(':').
                 append(artifact.getArtifactId());
         final String classifier = artifact.getClassifier();
+        final String type = artifact.getType();
         if (classifier != null && !classifier.isEmpty()) {
             buf.append("::").append(classifier);
+            if (type != null && !type.isEmpty()) {
+                buf.append(":").append(type);
+            } else {
+                buf.append(":jar");
+            }
+        } else if (type != null && !type.isEmpty()) {
+            buf.append(":::").append(type);
+        } else {
+            buf.append(":::jar");
         }
         return buf.toString();
     }

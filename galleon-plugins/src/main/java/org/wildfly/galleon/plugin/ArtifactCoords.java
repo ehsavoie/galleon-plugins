@@ -19,7 +19,6 @@ package org.wildfly.galleon.plugin;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
 /**
  * Complete Maven artifact coordinates.
  *
@@ -52,14 +51,14 @@ public class ArtifactCoords implements Comparable<ArtifactCoords> {
     public static Gav newGav(String str) {
 
         int i = str.indexOf(':');
-        if(i <= 0) {
+        if (i <= 0) {
             throw new IllegalArgumentException("groupId is missing in '" + str + "'");
         }
         final String groupId = str.substring(0, i);
         final String artifactId;
         final String version;
         i = str.indexOf(':', i + 1);
-        if(i < 0) {
+        if (i < 0) {
             artifactId = str.substring(groupId.length() + 1);
             version = null;
         } else {
@@ -107,14 +106,14 @@ public class ArtifactCoords implements Comparable<ArtifactCoords> {
         @Override
         public String toString() {
             final StringBuilder buf = new StringBuilder();
-            if(groupId != null) {
+            if (groupId != null) {
                 buf.append(groupId);
             }
             buf.append(':');
-            if(artifactId != null) {
+            if (artifactId != null) {
                 buf.append(artifactId);
             }
-            if(version != null) {
+            if (version != null) {
                 buf.append(':').append(version);
             }
             return buf.toString();
@@ -132,48 +131,57 @@ public class ArtifactCoords implements Comparable<ArtifactCoords> {
 
         @Override
         public boolean equals(Object obj) {
-            if (this == obj)
+            if (this == obj) {
                 return true;
-            if (obj == null)
+            }
+            if (obj == null) {
                 return false;
-            if (getClass() != obj.getClass())
+            }
+            if (getClass() != obj.getClass()) {
                 return false;
+            }
             Gav other = (Gav) obj;
             if (artifactId == null) {
-                if (other.getArtifactId() != null)
+                if (other.getArtifactId() != null) {
                     return false;
-            } else if (!artifactId.equals(other.getArtifactId()))
+                }
+            } else if (!artifactId.equals(other.getArtifactId())) {
                 return false;
+            }
             if (groupId == null) {
-                if (other.getGroupId() != null)
+                if (other.getGroupId() != null) {
                     return false;
-            } else if (!groupId.equals(other.getGroupId()))
+                }
+            } else if (!groupId.equals(other.getGroupId())) {
                 return false;
+            }
             if (version == null) {
-                if (other.getVersion() != null)
+                if (other.getVersion() != null) {
                     return false;
-            } else if (!version.equals(other.getVersion()))
+                }
+            } else if (!version.equals(other.getVersion())) {
                 return false;
+            }
             return true;
         }
 
         @Override
         public int compareTo(Gav o) {
-            if(o == null) {
+            if (o == null) {
                 return 1;
             }
             int i = groupId.compareTo(o.getGroupId());
-            if(i != 0) {
+            if (i != 0) {
                 return i;
             }
             i = artifactId.compareTo(o.getArtifactId());
-            if(i != 0) {
+            if (i != 0) {
                 return i;
             }
-            if(version == null) {
+            if (version == null) {
                 return o.getVersion() == null ? 0 : -1;
             }
-            if(o.getVersion() == null) {
+            if (o.getVersion() == null) {
                 return 1;
             }
             return version.compareTo(o.getVersion());
@@ -202,11 +210,11 @@ public class ArtifactCoords implements Comparable<ArtifactCoords> {
         @Override
         public String toString() {
             final StringBuilder buf = new StringBuilder();
-            if(groupId != null) {
+            if (groupId != null) {
                 buf.append(groupId);
             }
             buf.append(':');
-            if(artifactId != null) {
+            if (artifactId != null) {
                 buf.append(artifactId);
             }
             return buf.toString();
@@ -223,33 +231,40 @@ public class ArtifactCoords implements Comparable<ArtifactCoords> {
 
         @Override
         public boolean equals(Object obj) {
-            if (this == obj)
+            if (this == obj) {
                 return true;
-            if (obj == null)
+            }
+            if (obj == null) {
                 return false;
-            if (getClass() != obj.getClass())
+            }
+            if (getClass() != obj.getClass()) {
                 return false;
+            }
             Ga other = (Ga) obj;
             if (artifactId == null) {
-                if (other.getArtifactId() != null)
+                if (other.getArtifactId() != null) {
                     return false;
-            } else if (!artifactId.equals(other.getArtifactId()))
+                }
+            } else if (!artifactId.equals(other.getArtifactId())) {
                 return false;
+            }
             if (groupId == null) {
-                if (other.getGroupId() != null)
+                if (other.getGroupId() != null) {
                     return false;
-            } else if (!groupId.equals(other.getGroupId()))
+                }
+            } else if (!groupId.equals(other.getGroupId())) {
                 return false;
+            }
             return true;
         }
 
         @Override
         public int compareTo(Ga o) {
-            if(o == null) {
+            if (o == null) {
                 return 1;
             }
             int i = groupId.compareTo(o.getGroupId());
-            if(i != 0) {
+            if (i != 0) {
                 return i;
             }
             return artifactId.compareTo(o.getArtifactId());
@@ -320,6 +335,24 @@ public class ArtifactCoords implements Comparable<ArtifactCoords> {
         return gaPart;
     }
 
+    public String getArtifactKey() {
+        final StringBuilder buf = new StringBuilder(groupId).append(':').
+                append(artifactId);
+        if (classifier != null && !classifier.isEmpty()) {
+            buf.append("::").append(classifier);
+            if (extension != null && !extension.isEmpty()) {
+                buf.append(":").append(extension);
+            } else {
+                buf.append(":jar");
+            }
+        } else if (extension != null && !extension.isEmpty()) {
+            buf.append(":::").append(extension);
+        } else {
+            buf.append(":::jar");
+        }
+        return buf.toString();
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -334,38 +367,51 @@ public class ArtifactCoords implements Comparable<ArtifactCoords> {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        if (this == obj) {
             return true;
-        if (obj == null)
+        }
+        if (obj == null) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+        if (getClass() != obj.getClass()) {
             return false;
+        }
         ArtifactCoords other = (ArtifactCoords) obj;
         if (artifactId == null) {
-            if (other.artifactId != null)
+            if (other.artifactId != null) {
                 return false;
-        } else if (!artifactId.equals(other.artifactId))
+            }
+        } else if (!artifactId.equals(other.artifactId)) {
             return false;
+        }
         if (classifier == null) {
-            if (other.classifier != null)
+            if (other.classifier != null) {
                 return false;
-        } else if (!classifier.equals(other.classifier))
+            }
+        } else if (!classifier.equals(other.classifier)) {
             return false;
+        }
         if (extension == null) {
-            if (other.extension != null)
+            if (other.extension != null) {
                 return false;
-        } else if (!extension.equals(other.extension))
+            }
+        } else if (!extension.equals(other.extension)) {
             return false;
+        }
         if (groupId == null) {
-            if (other.groupId != null)
+            if (other.groupId != null) {
                 return false;
-        } else if (!groupId.equals(other.groupId))
+            }
+        } else if (!groupId.equals(other.groupId)) {
             return false;
+        }
         if (version == null) {
-            if (other.version != null)
+            if (other.version != null) {
                 return false;
-        } else if (!version.equals(other.version))
+            }
+        } else if (!version.equals(other.version)) {
             return false;
+        }
         return true;
     }
 
@@ -434,13 +480,13 @@ public class ArtifactCoords implements Comparable<ArtifactCoords> {
     public String toString() {
         final StringBuilder buf = new StringBuilder();
         buf.append(groupId).append(':').append(artifactId);
-        if(extension != null) {
+        if (extension != null) {
             buf.append(':').append(extension);
         }
-        if(!classifier.isEmpty()) {
+        if (!classifier.isEmpty()) {
             buf.append(':').append(classifier);
         }
-        if(version != null) {
+        if (version != null) {
             buf.append(':').append(version);
         }
         return buf.toString();

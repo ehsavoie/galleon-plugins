@@ -178,7 +178,7 @@ public class ModuleXmlVersionResolver {
                 artifactCoords = ct;
             }
         }
-        return artifactCoords;
+        return ArtifactCoordsUtil.fromJBossModules(artifactCoords, "jar").getArtifactKey();
     }
 
     static void addHardCodedArtifacts(final Path file,  Set<String> hardcodedArtifacts) throws IOException, XMLStreamException {
